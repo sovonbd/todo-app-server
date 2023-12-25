@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -43,6 +43,34 @@ async function run() {
       const id = req.params.id;
       const updatedTask = req.body;
       console.log(id, updatedTask);
+
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          ...(updatedTask.taskName && { taskName: updatedTask.taskName }),
+          ...(updatedTask.taskDescription && {
+            taskDescription: updatedTask.taskDescription,
+          }),
+          ...(updatedTask.taskDate && { taskDate: updatedTask.taskDate }),
+          ...(updatedTask.taskPriority && {
+            taskPriority: updatedTask.taskPriority,
+          }),
+          ...(updatedTask.droppableId && {
+            droppableId: updatedTask.droppableId,
+          }),
+        },
+      };
+
+      const result = await taskCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.delete("/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
